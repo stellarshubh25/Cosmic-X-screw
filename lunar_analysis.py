@@ -1,10 +1,25 @@
 import streamlit as st
 import rasterio
-import matplotlib.pyplot as plt
-import numpy as np
+import requests
+import os
 
-st.title("Cosmic X Crew - Lunar Analysis App")
-st.write("The app is now running successfully!")
+# Your specific file ID
+FILE_ID = "1R9OrT4NZDvzleV4Tc8OdPdV4lh0npv-N"
+FILENAME = "ICY_CRATERS_SP.tif"
+
+# Download the file from Google Drive if it isn't already there
+if not os.path.exists(FILENAME):
+    st.write("Downloading data from Google Drive... (this may take a moment)")
+    url = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+    response = requests.get(url)
+    with open(FILENAME, "wb") as f:
+        f.write(response.content)
+    st.write("Download complete!")
+
+# Now proceed with your analysis using the file
+with rasterio.open(FILENAME) as src:
+    # Your existing code to process the image goes here
+    st.write("File loaded and ready for analysis!")
 # 1. Define the path to your GeoTIFF file
 file_path = "ICY_CRATERS_SP.tif"
 
