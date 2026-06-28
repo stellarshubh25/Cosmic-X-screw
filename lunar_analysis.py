@@ -6,33 +6,35 @@ import os
 FILE_ID = "1R9OrT4NZDvzleV4Tc8OdPdV4lh0npv-N"
 FILENAME = "ICY_CRATERS_SP.tif"
 
-# 1. Download with proper headers
-if not os.path.exists(FILENAME) or os.path.getsize(FILENAME) < 1000000:
-    st.write("Downloading data from Google Drive...")
-    url = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
-    
-    # We use a session to handle potential redirects
+def download_file_from_google_drive(id, destination):
+    URL = "https://docs.google.com/uc?export=download"
     session = requests.Session()
-    response = session.get(url, stream=True)
+    response = session.get(URL, params={'id': id}, stream=True)
     
-    # Check if we got a real file and not an HTML page
-    if response.status_code == 200:
-        with open(FILENAME, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        st.write("Download complete!")
-    else:
-        st.error(f"Failed to download. Status code: {response.status_code}")
+    # Check for the Google "confirm" token (Virus scan bypass)
+    token = None
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            token = value
+            break
+    
+    if token:
+        params = {'id': id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+    
+    # Save the real file content
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(32768):
+            if chunk: f.write(chunk)
 
-# 2. Add a check before opening
-if os.path.exists(FILENAME):
-    try:
-        with rasterio.open(FILENAME) as src:
-            st.write("File loaded successfully!")
-            st.write(f"Metadata: {src.profile}") # This will print info if successful
-    except Exception as e:
-        st.error(f"Rasterio Error: {e}")
-        st.write("The file might be corrupted or not a valid GeoTIFF.")
+if not os.path.exists(FILENAME):
+    st.write("Downloading data from Google Drive (handling virus scan bypass)...")
+    download_file_from_google_drive(FILE_ID, FILENAME)
+    st.write("Download finished!")
+
+# Now attempt to open
+with rasterio.open(FILENAME) as src:
+    st.write("Successfully loaded GeoTIFF!")
 # 1. Define the path to your GeoTIFF file
 file_path = "ICY_CRATERS_SP.tif"
 
