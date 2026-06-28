@@ -3,23 +3,36 @@ import rasterio
 import requests
 import os
 
-# Your specific file ID
 FILE_ID = "1R9OrT4NZDvzleV4Tc8OdPdV4lh0npv-N"
 FILENAME = "ICY_CRATERS_SP.tif"
 
-# Download the file from Google Drive if it isn't already there
-if not os.path.exists(FILENAME):
-    st.write("Downloading data from Google Drive... (this may take a moment)")
+# 1. Download with proper headers
+if not os.path.exists(FILENAME) or os.path.getsize(FILENAME) < 1000000:
+    st.write("Downloading data from Google Drive...")
     url = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
-    response = requests.get(url)
-    with open(FILENAME, "wb") as f:
-        f.write(response.content)
-    st.write("Download complete!")
+    
+    # We use a session to handle potential redirects
+    session = requests.Session()
+    response = session.get(url, stream=True)
+    
+    # Check if we got a real file and not an HTML page
+    if response.status_code == 200:
+        with open(FILENAME, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        st.write("Download complete!")
+    else:
+        st.error(f"Failed to download. Status code: {response.status_code}")
 
-# Now proceed with your analysis using the file
-with rasterio.open(FILENAME) as src:
-    # Your existing code to process the image goes here
-    st.write("File loaded and ready for analysis!")
+# 2. Add a check before opening
+if os.path.exists(FILENAME):
+    try:
+        with rasterio.open(FILENAME) as src:
+            st.write("File loaded successfully!")
+            st.write(f"Metadata: {src.profile}") # This will print info if successful
+    except Exception as e:
+        st.error(f"Rasterio Error: {e}")
+        st.write("The file might be corrupted or not a valid GeoTIFF.")
 # 1. Define the path to your GeoTIFF file
 file_path = "ICY_CRATERS_SP.tif"
 
