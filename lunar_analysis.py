@@ -1,40 +1,24 @@
 import streamlit as st
 import rasterio
-import requests
-import os
 
-FILE_ID = "1R9OrT4NZDvzleV4Tc8OdPdV4lh0npv-N"
-FILENAME = "ICY_CRATERS_SP.tif"
+# Use your new direct link here
+DIRECT_URL = "https://www.dropbox.com/scl/fi/ilu80zbhluyluq6pcd516/ICY_CRATERS_SP.tif?rlkey=g2jqntrpris2lydo3i8qdx22g&st=g5mumz31&dl=1"
 
-def download_file_from_google_drive(id, destination):
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
-    response = session.get(URL, params={'id': id}, stream=True)
-    
-    # Check for the Google "confirm" token (Virus scan bypass)
-    token = None
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            token = value
-            break
-    
-    if token:
-        params = {'id': id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-    
-    # Save the real file content
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk: f.write(chunk)
+st.title("Cosmic X Crew - Lunar Analysis")
 
-if not os.path.exists(FILENAME):
-    st.write("Downloading data from Google Drive (handling virus scan bypass)...")
-    download_file_from_google_drive(FILE_ID, FILENAME)
-    st.write("Download finished!")
-
-# Now attempt to open
-with rasterio.open(FILENAME) as src:
-    st.write("Successfully loaded GeoTIFF!")
+try:
+    # Rasterio streams the file directly from Dropbox
+    with rasterio.open(DIRECT_URL) as src:
+        st.write("Successfully connected to the map data!")
+        
+        # Display basic metadata to confirm it's working
+        st.write(f"File width: {src.width}, File height: {src.height}")
+        
+        # Optional: Render the first band
+        # st.image(src.read(1)) 
+        
+except Exception as e:
+    st.error(f"Error connecting to map: {e}")
 # 1. Define the path to your GeoTIFF file
 file_path = "ICY_CRATERS_SP.tif"
 
