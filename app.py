@@ -1,4 +1,7 @@
 import streamlit as st
+st.title("Cosmic X Crew - Lunar App")
+st.write("App is running successfully!")
+import streamlit as st
 import rasterio
 import numpy as np
 import matplotlib.pyplot as plt
