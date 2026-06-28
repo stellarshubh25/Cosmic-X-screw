@@ -1,8 +1,10 @@
+import streamlit as st
 import rasterio
-from rasterio.plot import show
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
+st.title("Cosmic X Crew - Lunar Analysis App")
+st.write("The app is now running successfully!")
 # 1. Define the path to your GeoTIFF file
 file_path = "ICY_CRATERS_SP.tif"
 
